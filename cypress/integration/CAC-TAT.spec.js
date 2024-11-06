@@ -188,4 +188,58 @@ describe('Central de Atendimento ao Cliente TAT', function() { // describe - def
     it('acessa a página da política de privacidade removendo o target e então clicando no link', function() {
       cy.get('#privacy a').invoke('removeAttr', 'target').click()
     })
+
+    Cypress._.times(5, () => {
+      it('exibe mensagem por 3 segundos', function() {
+        cy.clock() // congela o relógio do navegador
+        cy.contains('button', 'Enviar').click()  // ação que dispara algo que exibe uma mensagem por três segundos
+        cy.get('.error').should('be.visible') // verificação de que a mensagem está visível
+        cy.tick(3000) // avança o relógio três segundos (em milissegundos). Avanço este tempo para não perdê-lo esperando.
+        cy.get('.error').should('not.be.visible') // verificação de que a mensagem não está mais visível
+      })
+    })
+
+    it('exibe e esconde as mensagens de sucesso e erro usando o .invoke()', function() {
+      cy.get('.success')
+        .should('not.be.visible')
+        .invoke('show')
+        .should('be.visible')
+        .and('contain', 'Mensagem enviada com sucesso.')
+        .invoke('hide')
+        .should('not.be.visible')
+      cy.get('.error')
+        .should('not.be.visible')
+        .invoke('show')
+        .should('be.visible')
+        .and('contain', 'Valide os campos obrigatórios!')
+        .invoke('hide')
+        .should('not.be.visible')
+    })
+
+    it('preenche a area de texto usando o comando invoke', function() {
+      const textoLongo = Cypress._.repeat("um texto gigante ", 10);
+      cy.get('#open-text-area')
+        .invoke('val', textoLongo) // nisso nós não estamos digitando no campo, é como se já estivessemos colando o texto inteiro de uma vez, o que faz ser mais rápido
+        .should('have.value', textoLongo)
+    })
+
+    it('faz uma requisição HTTP', function() {
+      cy.request({
+        method: 'GET',
+        url: 'https://cac-tat.s3.eu-central-1.amazonaws.com/index.html'
+      }).then((response => {
+        expect(response.status).to.equal(200);
+        expect(response.statusText).to.equal('OK');
+        expect(response.body).to.include("CAC TAT");
+      }))
+    })
+
+    it.only('ache o gato', function() {
+      cy.get('#cat')
+        .invoke('show')
+        .should('be.visible')
+
+      cy.get('#title')
+        .invoke('text', 'CAT TAT')
+    })
   })
